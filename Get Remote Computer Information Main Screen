@@ -1,0 +1,106 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Get_Remote_Computer_Information
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            if (args.Length < 3)
+            {
+                Console.WriteLine("");
+                Console.WriteLine("==============================================================================================");
+                Console.WriteLine("");
+                Console.WriteLine(" Get Remote Computer Information:");
+                Console.WriteLine(" --------------------------------");
+                Console.WriteLine("");
+                Console.WriteLine(" Get Remote Computer Information.exe <switch> <computername> <domain\\username> <password>");
+                Console.WriteLine("");
+                Console.WriteLine(" Example: Get Remote Computer Information.exe -u server homelab\\Administrator P@ssword!!");
+                Console.WriteLine("");
+                Console.WriteLine(" Switch List:");
+                Console.WriteLine("");
+                Console.WriteLine(" -o  Get OS Name");
+                Console.WriteLine(" -c  Get Computer Name");
+                Console.WriteLine(" -u  Get UUID");
+                Console.WriteLine(" -b  Get OS InstallDate");
+                Console.WriteLine(" -i  Get IP Address");
+                Console.WriteLine(" -d  Get Domain");
+                Console.WriteLine(" -m  Get Admin Group Members");
+                Console.WriteLine(" -a  Get Installed Applications");
+                Console.WriteLine("");
+                Console.WriteLine("==============================================================================================");
+                Console.WriteLine("");
+            }
+            else
+            {
+                string Switch = args[0];
+                string ComputerName = args[1];
+                string UserName = args[2];
+                string Password = args[3];
+
+                var ComputerInfo = new RemoteComputerInformation();
+
+                switch (Switch)
+                {
+                    case "-o":
+                        string GetComputerOSName = ComputerInfo.GetComputerOSName(UserName, Password, ComputerName);
+                        Console.WriteLine(GetComputerOSName);
+                        break;
+                    case "-c":
+                        string GetComputerName = ComputerInfo.GetComputerName(UserName, Password, ComputerName);
+                        Console.WriteLine(GetComputerName);
+                        break;
+                    case "-u":
+                        string GetComputerUUID = ComputerInfo.GetComputerUUID(UserName, Password, ComputerName);
+                        Console.WriteLine(GetComputerUUID);
+                        break;
+                    case "-b":
+                        string GetComputerInstallDate = ComputerInfo.GetComputerInstallDate(UserName, Password, ComputerName);
+                        Console.WriteLine(GetComputerInstallDate);
+                        break;
+                    case "-i":
+                        string GetComputerIPAddresses = ComputerInfo.GetComputerIPAddresses(UserName, Password, ComputerName);
+                        Console.WriteLine(GetComputerIPAddresses);
+                        break;
+                    case "-d":
+                        string GetComputerDomain = ComputerInfo.GetComputerDomain(UserName, Password, ComputerName);
+                        Console.WriteLine(GetComputerDomain);
+                        break;
+                    case "-m":
+                        string GetComputerAdministratorsGroupMembers = ComputerInfo.GetComputerAdministratorsGroupMembers(UserName, Password, ComputerName);
+                        Console.WriteLine(GetComputerAdministratorsGroupMembers);
+                        break;
+                    case "-a":
+                        string GetComputerInstalledApplications = ComputerInfo.GetComputerInstalledApplications(UserName, Password, ComputerName);
+                        Console.WriteLine(GetComputerInstalledApplications);
+                        break;
+                    default:
+                        Console.WriteLine("Didn't choose a switch bruh");
+                        Environment.Exit(1);
+                        break;
+                        
+                }//switch
+
+                Environment.Exit(0);
+
+
+                /*
+                 information to write in:
+                 -------------------------
+                    RAM_GB
+                    CPU
+                 
+                 */
+
+            }//if
+
+            //Console.ReadLine();
+
+        }//Main
+    }//Program
+}//Namespace
