@@ -1,0 +1,166 @@
+using System;
+using System.Collections.Generic;
+using System.Management;
+
+namespace Get_Remote_Computer_Information
+{
+    class RemoteComputerInformation
+    {
+        public string RemoteConnect(string UserName, string Password, string ComputerName, string Query, string Data)
+        {
+            try
+            {
+                ConnectionOptions options = new ConnectionOptions
+                {
+                    Username = UserName,
+                    Password = Password
+                }; //connection info
+
+                ManagementScope scope = new ManagementScope(@"\\" + ComputerName + @"\root\cimv2", options);
+                scope.Connect();
+
+                try
+                {
+                    ObjectQuery OS_Query = new ObjectQuery(Query);
+                    ManagementObjectSearcher searcher = new ManagementObjectSearcher(scope, OS_Query);
+                    ManagementObjectCollection queryCollection = searcher.Get();
+
+                    List<string> DataList = new List<string>();
+
+                    foreach (ManagementObject Info in queryCollection)
+                    {
+                        if (Info[Data] != null)
+                        {
+                            if (Info[Data] is Array)
+                            {
+                                string[] addresses = (string[])Info[Data];
+                                DataList.AddRange(addresses);
+                            }
+                            else
+                            {
+                                DataList.Add(Info[Data].ToString());
+                            }//if
+                        }//if
+
+                    }//foreach
+
+                    return string.Join("\n", DataList.ToArray());
+                }
+                catch (ManagementException e)
+                {
+                    return "Cant Query Info: " + e.Message;
+                }//try catch
+            }
+            catch (Exception e)
+            {
+                return "Cant Connect to Computer: " + e.Message;
+            }//try catch
+
+            return "?";
+
+        }//RemoteConnect
+        public string GetComputerOSName(string UserName, string Password, string ComputerName)
+        {
+            string WMIQuery = "SELECT Caption FROM Win32_OperatingSystem";
+            string WMIData = "Caption";
+            return RemoteConnect(UserName, Password, ComputerName, WMIQuery, WMIData);
+        }//GetComputerOSName
+        public string GetComputerName(string UserName, string Password, string ComputerName)
+        {
+            string WMIQuery = "SELECT CSName FROM Win32_OperatingSystem";
+            string WMIData = "CSName";
+            return RemoteConnect(UserName, Password, ComputerName, WMIQuery, WMIData);
+        }//GetComputerName
+        public string GetComputerUUID(string UserName, string Password, string ComputerName)
+        {
+            string WMIQuery = "SELECT UUID FROM Win32_ComputerSystemProduct";
+            string WMIData = "UUID";
+            return RemoteConnect(UserName, Password, ComputerName, WMIQuery, WMIData);
+        }//GetComputerUUID
+        public string GetComputerInstallDate(string UserName, string Password, string ComputerName)
+        {
+            string WMIQuery = "SELECT InstallDate FROM Win32_OperatingSystem";
+            string WMIData = "InstallDate";
+
+            DateTime InstalledDate = ManagementDateTimeConverter.ToDateTime(RemoteConnect(UserName, Password, ComputerName, WMIQuery, WMIData));
+
+            return InstalledDate.ToString();
+
+        }//GetComputerInstallDate
+        public string GetComputerIPAddresses(string UserName, string Password, string ComputerName)
+        {
+            string WMIQuery = "SELECT IPAddress FROM Win32_NetworkAdapterConfiguration WHERE IPEnabled = 'True'";
+            string WMIData = "IPAddress";
+            return RemoteConnect(UserName, Password, ComputerName, WMIQuery, WMIData);
+
+        }//GetComputerIPAddresses
+        public string GetComputerDomain(string UserName, string Password, string ComputerName)
+        {
+            string WMIQuery = "SELECT Domain FROM Win32_ComputerSystem";
+            string WMIData = "Domain";
+            return RemoteConnect(UserName, Password, ComputerName, WMIQuery, WMIData);
+        }//GetComputerIPAddresses
+        public string GetComputerAdministratorsGroupMembers(string UserName, string Password, string ComputerName) {
+
+            try
+            {
+                ConnectionOptions options = new ConnectionOptions
+                {
+                    Username = UserName,
+                    Password = Password
+                }; //connection info
+
+                ManagementScope scope = new ManagementScope(@"\\" + ComputerName + @"\root\cimv2", options);
+                scope.Connect();
+
+                try
+                {
+                    string WMIQuery = String.Format("SELECT PartComponent FROM Win32_GroupUser WHERE GroupComponent = \"Win32_Group.Domain='{0}',Name='{1}'\"", ComputerName, "Administrators");
+                    string WMIData = "PartComponent";
+
+                    ObjectQuery OS_Query = new ObjectQuery(WMIQuery);
+                    ManagementObjectSearcher searcher = new ManagementObjectSearcher(scope, OS_Query);
+                    ManagementObjectCollection queryCollection = searcher.Get();
+
+                    List<string> DataList = new List<string>();
+
+                    foreach (ManagementObject Info in queryCollection)
+                    {
+                        if (Info[WMIData] != null)
+                        {
+                            string User = Info[WMIData].ToString();
+                            User = User.Split(',')[1];
+                            User = User.Split('=')[1];
+                            User = User.Replace("\"", "");
+
+                            string Domain = Info[WMIData].ToString();
+                            Domain = Domain.Split(',')[0];
+                            Domain = Domain.Split('=')[1];
+                            Domain = Domain.Replace("\"", "");
+
+                            DataList.Add(Domain + "\\" + User);
+                        }//if
+                    }//foreach
+
+                    return string.Join(", ", DataList.ToArray());
+
+                }
+                catch (ManagementException e)
+                {
+                    return "Cant Query Info: " + e.Message;
+                }//try catch
+            }
+            catch (Exception e)
+            {
+                return "Cant Connect to Computer: " + e.Message;
+            }//try catch
+
+        }//GetComputerAdministratorsGroupMembers
+        public string GetComputerInstalledApplications(string UserName, string Password, string ComputerName)
+        {
+            string WMIQuery = "SELECT * FROM Win32_Product";
+            string WMIData = "Name";
+            return RemoteConnect(UserName, Password, ComputerName, WMIQuery, WMIData);
+        }//GetInstalledApplications
+    }//class RemoteComputerInformation
+}//namespace Get_Remote_Computer_Information
